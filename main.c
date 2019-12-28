@@ -16,7 +16,7 @@ int determineLineNumber();
 void readFile();
 
 int number_of_threads;
-int maxLineLenght = 200;
+int maxLineLenght = 150;
 
 struct thread_data
 {
