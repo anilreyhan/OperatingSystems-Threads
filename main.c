@@ -14,9 +14,15 @@
 void *readLine(void *threadid);
 int determineLineNumber();
 void readFile();
+void printLines();
 
+
+#define MAXLINELENGTH 150
+#define LINENUMBER 150
+
+int readedQueue[LINENUMBER];
+char lines[LINENUMBER][MAXLINELENGTH];
 int number_of_threads;
-int maxLineLenght = 150;
 
 struct thread_data
 {
@@ -38,10 +44,10 @@ int main(int argc, char **args) {
     
     
     printf("File to read: %s , Thread count, respectively : %s %s %s %s \n", args[2],args[4],args[5],args[6],args[7]);
-    int lineNumber = determineLineNumber();
-    
-    int readedQueue[lineNumber];
-    char lines[lineNumber][maxLineLenght];
+    number_of_threads = atoi(args[4]);
+    readFile();
+
+    printLines();
 
 
 
@@ -52,7 +58,7 @@ void readFile(){
     pthread_t threads[number_of_threads];
     int *taskids[number_of_threads];
     int rc, t;
-    int pass = 0;
+    int pass = 2;
 
     for(t=0;t<number_of_threads;t++) {
         thread_data_array[t].thread_id = t;
@@ -65,41 +71,49 @@ void readFile(){
             exit(-1);
         }
     }
+    pthread_join(threads[0], NULL);
+    pthread_join(threads[1], NULL);
+
     pthread_exit(NULL);
 }
 
 void *readLine(void *threadarg){
     //Empty function for now...
-    int taskid, sum;
+    int taskid, lineNumber;
     struct thread_data *my_data;
 
     my_data = (struct thread_data *) threadarg;
     taskid = my_data->thread_id;
-    sum = my_data->pass;
-    printf("Thread id:%d, Pass=%d\n", taskid, sum);
+    lineNumber = my_data->pass;
+    printf("Thread id:%d, Pass=%d\n", taskid, lineNumber);
+
+    char buf[512];
+    int count = 0;
+    FILE *file = fopen("test.txt", "r");
+    char line[256]; /* or other suitable maximum line size */
+    while (fgets(line, sizeof line, file) != NULL) /* read a line */
+    {
+        count++;
+        if (count == lineNumber)
+        {
+            for (int i = 0; i < LINENUMBER; i++)
+            {
+                if (lines[i][0] == '\0')
+                {
+                    printf("copy line %s, id is %d \n", line , taskid );
+                    strcpy(lines[i], line);
+                    break;
+                }
+            }
+        }
+    }
+    fclose(file);
     pthread_exit(NULL);
 }
 
-int determineLineNumber(){
-    FILE *fp;
-    int count = 0;  // Line counter (result)
-    int countMaxLine = 0;
-    char ch;  // To store a character read from file
-
-    fp = fopen("test.txt", "r");
-    if (fp == NULL){
-    printf("Could not open file %s", "test.txtg");
-    return 0;
+void printLines(){
+    for (int i = 0; i < LINENUMBER; ++i)
+    {
+        printf("%s\n", lines[i]);
     }
-    for (ch = getc(fp); ch != EOF; ch = getc(fp)){
-        countMaxLine++;
-        maxLineLenght = countMaxLine;
-        if (ch == '\n') { // Increment count if this character is newline
-            count = count + 1;
-            countMaxLine = 0;
-        }
-    }
-
-    fclose(fp);
-    return count;
-    }
+}
