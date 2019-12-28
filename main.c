@@ -10,6 +10,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 void *readLine(void *threadid);
 void readFile();
 
@@ -22,12 +23,21 @@ struct thread_data
 };
 
 
-int main() {
-    printf("Please specify number of threads.\n");
-    scanf ("%d",&number_of_threads);
-    printf("number of threads is %d\n", number_of_threads);
+int main(int argc, char **args) {
+    
+    
+    
+     // To print error when usage of the program is wrong
+    if((argc != 8) || strstr(args[1], "-d") == NULL || strstr(args[3], "-n") == NULL){
+        perror("ERROR: Invalid arguments");
+        perror("USAGE: ./a.out -d <directoryName> -n <#ofReadThreads> <#ofUpperThreads> <#ofReplaceThreads> <#ofWriteThreads> ");
+        exit(1);
+    }
+    
+    
+    printf("File to read: %s , Thread count, respectively : %s %s %s %s", args[2],args[4],args[5],args[6],args[7]);
+   
 
-    readFile();
 
     return 0;
 }
