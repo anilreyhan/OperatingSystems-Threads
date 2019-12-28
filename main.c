@@ -40,6 +40,8 @@ int main(int argc, char **args) {
     printf("File to read: %s , Thread count, respectively : %s %s %s %s \n", args[2],args[4],args[5],args[6],args[7]);
     int lineNumber = determineLineNumber();
     
+    int readedQueue[lineNumber];
+    char lines[lineNumber][maxLineLenght];
 
 
 
