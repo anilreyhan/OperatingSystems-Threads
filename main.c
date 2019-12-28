@@ -1,7 +1,7 @@
 /*
  *      How to run?
  *      gcc -o main main.c -pthread
- *      ./main
+ *       ./main -d test.txt -n 2 2 2 2
  *
  *      fseek fuction might be used in project.
  */
@@ -12,9 +12,11 @@
 #include <stdlib.h>
 #include <string.h>
 void *readLine(void *threadid);
+int determineLineNumber();
 void readFile();
 
 int number_of_threads;
+int maxLineLenght = 0;
 
 struct thread_data
 {
@@ -36,9 +38,10 @@ int main(int argc, char **args) {
     
     
     printf("File to read: %s , Thread count, respectively : %s %s %s %s", args[2],args[4],args[5],args[6],args[7]);
-   
+   int lineNumber = determineLineNumber();
+   printf("line number is %d ", lineNumber);
     
-    
+
 
 
     return 0;
@@ -75,3 +78,27 @@ void *readLine(void *threadarg){
     printf("Thread id:%d, Pass=%d\n", taskid, sum);
     pthread_exit(NULL);
 }
+
+int determineLineNumber(){
+    FILE *fp;
+    int count = 0;  // Line counter (result)
+    int countMaxLine = 0;
+    char ch;  // To store a character read from file
+
+    fp = fopen("test.txt", "r");
+    if (fp == NULL){
+    printf("Could not open file %s", "test.txtg");
+    return 0;
+    }
+    for (ch = getc(fp); ch != EOF; ch = getc(fp)){
+        countMaxLine++;
+        maxLineLenght = countMaxLine;
+        if (ch == '\n') { // Increment count if this character is newline
+            count = count + 1;
+            countMaxLine = 0;
+        }
+    }
+
+    fclose(fp);
+    return count;
+    }
