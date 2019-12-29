@@ -15,6 +15,7 @@
 
 void *readLine(void *threadid);
 void* upper_function(void* args);
+void* write_function(void* args);
 int determineLineNumber();
 void readFile();
 int getFileLineCount();
@@ -122,7 +123,9 @@ int main(int argc, char **args) {
     for (int i = 0; i < number_of_replace_threads; i++) {
         pthread_create (&replace_thread[i], NULL, &replace_function, (void*)&i);
     }
-    
+    for (int i = 0; i < number_of_write_threads; i++) {
+        pthread_create (&write_thread[i], NULL, &write_thread, (void*)&i);
+    }
     
     /////KILL THREADS
     for (int i = 0; i < number_of_read_threads; i++)
@@ -158,11 +161,11 @@ void* read_function(void* args){
         {
             pthread_mutex_lock(&array_mutex[i]);
             if (lines[i].readFlag != 1){
-                printf("Read_%d is working in index %d\n",thread_id, i);
+                
                 //read line
                 //printf("get line %s\n", getLine(i));
                 lines[i].line = getLine(i);
-                
+                printf("Read_%d read the line %d which is \"%s\n",thread_id, i, lines[i].line);
                 
                 //end of read line
                 readCount = readCount + 1;
@@ -226,15 +229,6 @@ void* replace_function(void* args){
     pthread_exit((void*)0);
 }
 
-
-
-
-
-
-
-
-
-
 void* upper_function(void* args){
     int thread_id=*((int*)args);
     
@@ -271,6 +265,37 @@ void* upper_function(void* args){
             }
             pthread_mutex_unlock(&array_mutex[i]);
             pthread_mutex_unlock(&upperCount_mutex);
+        }
+    }
+    pthread_exit((void*)0);
+}
+
+void* write_function(void* args){
+    int thread_id=*((int*)args);
+    
+    while(writeCount<totalNumOfLines){
+        pthread_mutex_lock(&writeCount_mutex);
+        for (int i = 0; i <= totalNumOfLines; i++)
+        {
+            pthread_mutex_lock(&array_mutex[i]);
+            if (lines[i].readFlag == 1 && lines[i].replaceFlag == 1 && lines[i].upperFlag == 1){
+                
+                //write line
+                //printf("get line %s\n", getLine(i));
+                lines[i].line = getLine(i);
+                printf("Read_%d read the line %d which is \"%s\n",thread_id, i, lines[i].line);
+                
+                //end of read line
+                writeCount = writeCount + 1;
+                lines[i].readFlag = 1;
+            }
+            else{
+                pthread_mutex_unlock(&array_mutex[i]);
+                pthread_mutex_unlock(&readCount_mutex);
+                continue;
+            }
+            pthread_mutex_unlock(&array_mutex[i]);
+            pthread_mutex_unlock(&readCount_mutex);
         }
     }
     pthread_exit((void*)0);
@@ -335,4 +360,46 @@ char *strupr(char *str)
   }
 
   return str;
+}
+
+
+
+void write(int line, char* newLine){
+    FILE * fPtr;
+    FILE * fTemp;
+    
+    char buffer[MAXLINELENGTH];
+    int line, count;
+
+
+    /* Remove extra new line character from stdin */
+    fflush(stdin);
+
+    printf("Replace '%d' line with: ", line);
+    fgets(newline, MAXLINELENGTH, stdin);
+
+
+    /*  Open all required files */
+    fPtr  = fopen(fileName, "r");
+    fTemp = fopen("replace.tmp", "w"); 
+
+    /*
+     * Read line from source file and write to destination 
+     * file after replacing given line.
+     */
+    count = 0;
+    while ((fgets(buffer, MAXLINELENGTH, fPtr)) != NULL)
+    {
+        count++;
+        if (count == line)
+            fputs(newline, fTemp);
+        else
+            fputs(buffer, fTemp);
+    }
+
+
+    /* Close all files to release resource */
+    fclose(fPtr);
+    fclose(fTemp);
+
 }
