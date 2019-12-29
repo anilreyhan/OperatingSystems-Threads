@@ -11,16 +11,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
+
 void *readLine(void *threadid);
+void* upper_function(void* args);
 int determineLineNumber();
 void readFile();
 int getFileLineCount();
 void* read_function(void* args);
 void* replace_function(void* line);
 char* getLine(int index);
+char *strupr(char *str);
 char *replaceChars(char *line);
-
-
 
 #define MAXLINELENGTH 150
 #define LINENUMBER 150
@@ -108,15 +110,14 @@ int main(int argc, char **args) {
         pthread_mutex_init(&array_mutex[i],NULL);
         
     }
-    
-    
-    //hghgf
-    
-    
+ 
     /////CREATE THREADS
     //Read Thread
     for (int i = 0; i < number_of_read_threads; i++) {
         pthread_create (&read_thread[i], NULL, &read_function, (void*)&i);
+    }
+    for (int i = 0; i < number_of_upper_threads; i++) {
+        pthread_create (&upper_thread[i], NULL, &upper_function, (void*)&i);
     }
     for (int i = 0; i < number_of_replace_threads; i++) {
         pthread_create (&replace_thread[i], NULL, &replace_function, (void*)&i);
@@ -124,10 +125,20 @@ int main(int argc, char **args) {
     
     
     /////KILL THREADS
+    for (int i = 0; i < number_of_read_threads; i++)
+    {
+        pthread_join(read_thread[i], NULL);
+    }
+    /////CREATE THREADS
+    //upper Thread
+
+    /////KILL THREADS
+    for (int i = 0; i < number_of_upper_threads; i++)
+    {
+        pthread_join(upper_thread[i], NULL);
+    }
     
-    pthread_join(read_thread[0], NULL);
-    pthread_join(read_thread[1], NULL);
-    
+
     printf("\nARRAY IS:\n");
     for (int i = 0; i <= totalNumOfLines; ++i)
     {
@@ -240,6 +251,47 @@ char *replaceChars(char *line){
 
 
 
+void* upper_function(void* args){
+    int thread_id=*((int*)args);
+    
+    while(upperCount<totalNumOfLines){
+        pthread_mutex_lock(&upperCount_mutex);
+        for (int i = 1; i <= totalNumOfLines; i++)
+        {
+            pthread_mutex_lock(&array_mutex[i]);
+            if (lines[i].readFlag == 1 && lines[i].upperFlag != 1){
+                printf("Thread %d is working to upper in index %d\n",thread_id, i);
+                //upper line
+                //strcpy(lines[i].line,toUppercase(lines[i].line));
+                //toUppercase(lines[i].line);
+                
+                char * t; // first copy the pointer to not change the original
+                int size = 0;
+
+                unsigned char *p = (unsigned char *)lines[i].line;
+
+                while (*p) {
+                    *p = toupper((unsigned char)*p);
+                    p++;
+                }
+                     
+
+                //end of upper line
+                upperCount = upperCount + 1;
+                lines[i].upperFlag = 1;
+            }
+            else{
+                pthread_mutex_unlock(&array_mutex[i]);
+                pthread_mutex_unlock(&upperCount_mutex);
+                continue;
+            }
+            pthread_mutex_unlock(&array_mutex[i]);
+            pthread_mutex_unlock(&upperCount_mutex);
+        }
+    }
+    pthread_exit((void*)0);
+}
+
 int getFileLineCount(){
     
     FILE *fp;
@@ -289,37 +341,14 @@ char* getLine(int index){
 }
 
 
+char *strupr(char *str)
+{
+  unsigned char *p = (unsigned char *)str;
 
+  while (*p) {
+     *p = toupper((unsigned char)*p);
+      p++;
+  }
 
-
-
-void readFile(){
-    struct thread_data thread_data_array[number_of_threads];
-    pthread_t threads[number_of_threads];
-    int *taskids[number_of_threads];
-    int rc, t;
-    
-    for(t=0;t<number_of_threads;t++) {
-        thread_data_array[t].thread_id = t;
-        printf("Creating thread %d\n", t);
-        rc = pthread_create(&threads[t], NULL, readLine, (void *)
-                            &thread_data_array[t]);
-        if (rc) {
-            printf("ERROR; return code from pthread_create() is %d\n", rc);
-            exit(-1);
-        }
-    }
-    pthread_join(threads[0], NULL);
-    pthread_join(threads[1], NULL);
-    
-    pthread_exit(NULL);
-}
-
-void *readLine(void *threadarg){
-    //Empty function for now...
-    int taskid, lineNumber;
-    struct thread_data *my_data;
-    
-    pthread_exit(NULL);
-    
+  return str;
 }
