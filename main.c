@@ -19,8 +19,10 @@ int determineLineNumber();
 void readFile();
 int getFileLineCount();
 void* read_function(void* args);
+void* replace_function(void* line);
 char* getLine(int index);
 char *strupr(char *str);
+char *replaceChars(char *line);
 
 #define MAXLINELENGTH 150
 #define LINENUMBER 150
@@ -117,6 +119,11 @@ int main(int argc, char **args) {
     for (int i = 0; i < number_of_upper_threads; i++) {
         pthread_create (&upper_thread[i], NULL, &upper_function, (void*)&i);
     }
+    for (int i = 0; i < number_of_replace_threads; i++) {
+        pthread_create (&replace_thread[i], NULL, &replace_function, (void*)&i);
+    }
+    
+    
     /////KILL THREADS
     for (int i = 0; i < number_of_read_threads; i++)
     {
@@ -137,7 +144,7 @@ int main(int argc, char **args) {
     {
         printf("Text: %sReadF: %d, UF: %d, RepF: %d, WF: %d\n", lines[i].line, lines[i].readFlag, lines[i].upperFlag, lines[i].replaceFlag, lines[i].writeFlag);
     }
-
+    
     
     return 0;
 }
@@ -150,10 +157,11 @@ void* read_function(void* args){
         {
             pthread_mutex_lock(&array_mutex[i]);
             if (lines[i].readFlag != 1){
-                printf("Thread %d is working in index %d\n",thread_id, i);
+                printf("Read_%d is working in index %d\n",thread_id, i);
                 //read line
-                //printf("get line %s\n", getLine(i));
+                printf("get line %s\n", getLine(i));
                 lines[i].line = getLine(i);
+                
                 
                 //end of read line
                 readCount = readCount + 1;
@@ -170,6 +178,77 @@ void* read_function(void* args){
     }
     pthread_exit((void*)0);
 }
+
+void* replace_function(void* args){
+    int thread_id=*((int*)args);
+    
+    while(replaceCount<totalNumOfLines){
+        pthread_mutex_lock(&replaceCount_mutex);
+        for (int i = 1; i <= totalNumOfLines; i++)
+        {
+            pthread_mutex_lock(&array_mutex[i]);
+            if (lines[i].readFlag == 1 && lines[i].replaceFlag != 1){
+                printf("Replace_%d is working in index %d\n",thread_id, i);
+                //read line
+                //printf("get line %s\n", getLine(i));
+                printf("To replace: %s\n", lines[i].line);
+               // printf("To replaced maybe??: %s\n", replaceChars(lines[i].line));
+
+                
+                char * t; // first copy the pointer to not change the original
+                int size = 0;
+
+                unsigned char *p = (unsigned char *)lines[i].line;
+
+                while (*p) {
+                    if(*p == ' '){
+                        *p = '_';
+                    }
+                    p++;
+                }
+
+                
+               //printf("Replaced: %s\n", replaceChars(lines[i].line));
+                //end of read line
+                replaceCount = replaceCount + 1;
+                lines[i].replaceFlag = 1;
+            }
+            else{
+                pthread_mutex_unlock(&array_mutex[i]);
+                pthread_mutex_unlock(&replaceCount_mutex);
+                continue;
+            }
+            pthread_mutex_unlock(&array_mutex[i]);
+            pthread_mutex_unlock(&replaceCount_mutex);
+        }
+    }
+    pthread_exit((void*)0);
+}
+
+
+char *replaceChars(char *line){
+    line = malloc(MAXLINELENGTH);
+    printf("Beginning of replace: \n%s", line);
+
+    while(*line!='\0')
+    {
+        if(*line==" ")
+        {
+            line="_";
+        }
+        line++;
+    }
+    printf("End of replace: \n%s",line);
+
+    return line;
+    
+}
+
+
+
+
+
+
 
 
 void* upper_function(void* args){
