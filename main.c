@@ -16,6 +16,7 @@ int determineLineNumber();
 void readFile();
 int getFileLineCount();
 void* read_function(void* args);
+char* getLine(int index);
 
 
 #define MAXLINELENGTH 150
@@ -77,11 +78,12 @@ int main(int argc, char **args) {
     
     printf("\n\nFile to read: %s , Thread count, respectively : %s %s %s %s\n\n\n", args[2],args[4],args[5],args[6],args[7]);
     
-    
+    printf("file name is %s\n", fileName);
+    fileName = malloc(sizeof(args[2]));
     //printLines();
+    strcpy(fileName, args[2]);
     totalNumOfLines = getFileLineCount(args[2]);
     printf("TNOL is: %d\n", totalNumOfLines);
-    strcpy(fileName, args[2]);
     
     int number_of_read_threads = atoi(args[4]);
     int number_of_upper_threads = atoi(args[5]);
@@ -119,6 +121,13 @@ int main(int argc, char **args) {
     
     pthread_join(read_thread[0], NULL);
     pthread_join(read_thread[1], NULL);
+
+    /*printf("\nARRAY IS:\n");
+    for (int i = 0; i < LINENUMBER; ++i)
+    {
+        printf("%s\n", lines[i].line);
+    }*/
+
     
     return 0;
 }
@@ -135,8 +144,10 @@ void* read_function(void* args){
                 
                 printf("Thread %d is working in index %d\n",thread_id, i);
                 //read line
+                printf("get line %s\n", getLine(i));
+                //strcpy(lines[i].line, getLine(i));
                 
-                
+                //end of read line
                 readCount = readCount + 1;
                 lines[i].readFlag = 1;
                 
@@ -193,22 +204,18 @@ int getFileLineCount(){
 }
 
 char* getLine(int index){
-    
-    FILE* file = fopen(fileName, "r"); /* should check the result */
-    
-    do{
-        //NOTHING
+    char buf[512];
+    int count = 0;
+    FILE *file = fopen(fileName, "r");
+    char *line = malloc(MAXLINELENGTH);
+    while (fgets(line,  MAXLINELENGTH, file) != NULL) {
+        count++;
+        if (count == index){
+            //printf("copy line %s\n", line);
+            fclose(file);
+            return line;
+        }
     }
-    while (fgets(*line, sizeof(*line), file) < index) {
-        /* note that fgets don't strip the terminating \n, checking its
-         presence would allow to handle lines longer that sizeof(line) */
-        return(line)
-    };
-    /* may check feof here to make a difference between eof and io failure -- network
-     timeout for instance */
-    
-    fclose(file);
-    
 }
 
 
