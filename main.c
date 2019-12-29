@@ -99,9 +99,7 @@ int main(int argc, char **args) {
     
     
     //hghgf
-    
-    
-    
+     
     //printLines();
     totalNumOfLines = getFileLineCount(args[2]);
     printf("TNOL is: %d\n", totalNumOfLines);
@@ -126,7 +124,7 @@ void* read_function(void* args){
     
     while(readCount<totalNumOfLines){
         pthread_mutex_lock(&readCount_mutex);
-        
+        printf("Thread started\n");
         for (int i = 0; i < totalNumOfLines; ++i)
         {
             pthread_mutex_lock(&array_mutex[i]);
@@ -134,7 +132,7 @@ void* read_function(void* args){
             printf("Thread is working in index %d\n", i);
 
 
-            pthread_mutex_lock(&array_mutex[i]);
+            pthread_mutex_unlock(&array_mutex[i]);
         }
         
         
