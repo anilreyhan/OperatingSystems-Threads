@@ -116,7 +116,9 @@ int main(int argc, char **args) {
     
     /////KILL THREADS
     
-    
+    pthread_join(read_thread[0], NULL);
+    pthread_join(read_thread[1], NULL);
+
     return 0;
 }
 void* read_function(void* args){
@@ -128,7 +130,8 @@ void* read_function(void* args){
         for (int i = 0; i < totalNumOfLines; ++i)
         {
             pthread_mutex_lock(&array_mutex[i]);
-            printf("Thread %s is working in index %d\n", args, i);
+            
+            printf("Thread is working in index %d\n", i);
 
 
             pthread_mutex_lock(&array_mutex[i]);
