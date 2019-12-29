@@ -50,7 +50,8 @@ pthread_mutex_t readCount_mutex;
 pthread_mutex_t upperCount_mutex;
 pthread_mutex_t replaceCount_mutex;
 pthread_mutex_t writeCount_mutex;
-pthread_mutex_t array_mutex;
+pthread_mutex_t array_mutex[LINENUMBER];
+
 
 
 
@@ -89,7 +90,12 @@ int main(int argc, char **args) {
     pthread_mutex_init(&upperCount_mutex,NULL);
     pthread_mutex_init(&replaceCount_mutex,NULL);
     pthread_mutex_init(&writeCount_mutex,NULL);
-    pthread_mutex_init(&array_mutex,NULL);
+
+    for (int i = 0; i < LINENUMBER; ++i)
+    {
+        pthread_mutex_init(&array_mutex[i],NULL);
+
+    }
     
     
     //hghgf
@@ -119,7 +125,14 @@ void* read_function(void* args){
     while(readCount<totalNumOfLines){
         pthread_mutex_lock(&readCount_mutex);
         
-        
+        for (int i = 0; i < totalNumOfLines; ++i)
+        {
+            pthread_mutex_lock(&array_mutex[i]);
+            printf("Thread %s is working in index %d\n", args, i);
+
+
+            pthread_mutex_lock(&array_mutex[i]);
+        }
         
         
         
