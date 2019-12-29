@@ -14,7 +14,7 @@
 void *readLine(void *threadid);
 int determineLineNumber();
 void readFile();
-int getFileLineCount(char *fileName);
+int getFileLineCount();
 void* read_function(void* args);
 
 
@@ -43,8 +43,9 @@ int readCount = 0;
 int upperCount = 0;
 int replaceCount = 0;
 int writeCount = 0;
-
 int totalNumOfLines = 0;
+char* fileName;
+
 
 pthread_mutex_t readCount_mutex;
 pthread_mutex_t upperCount_mutex;
@@ -75,6 +76,12 @@ int main(int argc, char **args) {
     
     
     printf("\n\nFile to read: %s , Thread count, respectively : %s %s %s %s\n\n\n", args[2],args[4],args[5],args[6],args[7]);
+
+
+    //printLines();
+    totalNumOfLines = getFileLineCount(args[2]);
+    printf("TNOL is: %d\n", totalNumOfLines);
+    strcpy(fileName, args[2]);
     
     int number_of_read_threads = atoi(args[4]);
     int number_of_upper_threads = atoi(args[5]);
@@ -100,10 +107,6 @@ int main(int argc, char **args) {
     
     //hghgf
      
-    //printLines();
-    totalNumOfLines = getFileLineCount(args[2]);
-    printf("TNOL is: %d\n", totalNumOfLines);
-    
     
     /////CREATE THREADS
     //Read Thread
@@ -131,6 +134,9 @@ void* read_function(void* args){
             if (lines[i].readFlag != 1){
             
             printf("Thread %d is working in index %d\n",thread_id, i);
+            //read line
+
+
             readCount = readCount + 1;
             lines[i].readFlag = 1;
 
@@ -141,7 +147,7 @@ void* read_function(void* args){
 
             pthread_mutex_unlock(&array_mutex[i]);
             pthread_mutex_unlock(&readCount_mutex);
-            
+
         }
         
         
@@ -154,7 +160,7 @@ void* read_function(void* args){
 }
 
 
-int getFileLineCount(char *fileName){
+int getFileLineCount(){
     
     FILE *fp;
     int count = 0;  // Line counter (result)
@@ -185,6 +191,60 @@ int getFileLineCount(char *fileName){
     return count;
     
 }
+
+char* getLine(int index){
+    
+    FILE *fp;
+    int count = 0;  // Line counter (result)
+    char c;  // To store a character read from file
+    
+    // Get file name from user. The file should be
+    // either in current folder or complete path should be provided
+    
+    
+    // Open the file
+    fp = fopen(fileName, "r");
+    
+    // Check if file exists
+    if (fp == NULL)
+    {
+        printf("Could not open file %s", fileName);
+        return 0;
+    }
+    
+    // Extract characters from file and store in character c
+    for (c = getc(fp); c != EOF; c = getc(fp))
+        if (c == '\n') // Increment count if this character is newline
+            count = count + 1;
+    
+    // Close the file
+    while (fgets(line, sizeof line, file) != NULL) /* read a line */
+
+    {
+    fp = fopen("test.txt", "r");            count++;
+    if (fp == NULL){            if (count == lineNumber)
+    printf("Could not open file %s", "test.txtg");          {
+    return 0;               for (int i = 0; i < LINENUMBER; i++)
+    }               {
+    for (ch = getc(fp); ch != EOF; ch = getc(fp)){                  if (lines[i][0] == '\0')
+        countMaxLine++;                 {
+        maxLineLenght = countMaxLine;                       printf("copy line %s, id is %d \n", line , taskid );
+        if (ch == '\n') { // Increment count if this character is newline                       strcpy(lines[i], line);
+            count = count + 1;                      break;
+            countMaxLine = 0;                   }
+            }
+        }           }
+    }       }
+    fclose(file);
+
+
+
+    fclose(fp);
+    printf("The file %s has %d lines\n ", fileName, count);
+    return ;
+    
+}
+
 
 
 
