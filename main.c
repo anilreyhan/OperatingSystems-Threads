@@ -108,7 +108,7 @@ int main(int argc, char **args) {
     /////CREATE THREADS
     //Read Thread
     for (int i = 0; i < number_of_read_threads; i++) {
-        pthread_create (&read_thread[i],NULL,&read_function,(void*)&i);
+        pthread_create (&read_thread[i], NULL, &read_function, (void*)&i);
     }
     
     
@@ -120,29 +120,34 @@ int main(int argc, char **args) {
     return 0;
 }
 void* read_function(void* args){
-    
+    int thread_id=*((int*)args);
     
     while(readCount<totalNumOfLines){
         pthread_mutex_lock(&readCount_mutex);
-        printf("Thread started\n");
-        for (int i = 0; i < totalNumOfLines; ++i)
+        for (int i = 0; i < totalNumOfLines; i++)
         {
             pthread_mutex_lock(&array_mutex[i]);
             
-            printf("Thread is working in index %d\n", i);
+            if (lines[i].readFlag != 1){
+            
+            printf("Thread %d is working in index %d\n",thread_id, i);
+            readCount = readCount + 1;
+            lines[i].readFlag = 1;
 
+            }
+            else{
+                continue;
+            }
 
             pthread_mutex_unlock(&array_mutex[i]);
+            pthread_mutex_unlock(&readCount_mutex);
+            
         }
         
         
         
-        pthread_mutex_unlock(&readCount_mutex);
+        
     }
-    
-    
-    
-    
     
     
     pthread_exit((void*)0);
