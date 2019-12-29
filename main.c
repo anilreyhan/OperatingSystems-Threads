@@ -76,8 +76,8 @@ int main(int argc, char **args) {
     
     
     printf("\n\nFile to read: %s , Thread count, respectively : %s %s %s %s\n\n\n", args[2],args[4],args[5],args[6],args[7]);
-
-
+    
+    
     //printLines();
     totalNumOfLines = getFileLineCount(args[2]);
     printf("TNOL is: %d\n", totalNumOfLines);
@@ -97,16 +97,16 @@ int main(int argc, char **args) {
     pthread_mutex_init(&upperCount_mutex,NULL);
     pthread_mutex_init(&replaceCount_mutex,NULL);
     pthread_mutex_init(&writeCount_mutex,NULL);
-
+    
     for (int i = 0; i < LINENUMBER; ++i)
     {
         pthread_mutex_init(&array_mutex[i],NULL);
-
+        
     }
     
     
     //hghgf
-     
+    
     
     /////CREATE THREADS
     //Read Thread
@@ -119,7 +119,7 @@ int main(int argc, char **args) {
     
     pthread_join(read_thread[0], NULL);
     pthread_join(read_thread[1], NULL);
-
+    
     return 0;
 }
 void* read_function(void* args){
@@ -132,22 +132,22 @@ void* read_function(void* args){
             pthread_mutex_lock(&array_mutex[i]);
             
             if (lines[i].readFlag != 1){
-            
-            printf("Thread %d is working in index %d\n",thread_id, i);
-            //read line
-
-
-            readCount = readCount + 1;
-            lines[i].readFlag = 1;
-
+                
+                printf("Thread %d is working in index %d\n",thread_id, i);
+                //read line
+                
+                
+                readCount = readCount + 1;
+                lines[i].readFlag = 1;
+                
             }
             else{
                 continue;
             }
-
+            
             pthread_mutex_unlock(&array_mutex[i]);
             pthread_mutex_unlock(&readCount_mutex);
-
+            
         }
         
         
@@ -194,56 +194,24 @@ int getFileLineCount(){
 
 char* getLine(int index){
     
-    FILE *fp;
-    int count = 0;  // Line counter (result)
-    char c;  // To store a character read from file
+    FILE* file = fopen(fileName, "r"); /* should check the result */
     
-    // Get file name from user. The file should be
-    // either in current folder or complete path should be provided
-    
-    
-    // Open the file
-    fp = fopen(fileName, "r");
-    
-    // Check if file exists
-    if (fp == NULL)
-    {
-        printf("Could not open file %s", fileName);
-        return 0;
+    do{
+        //NOTHING
     }
+    while (fgets(*line, sizeof(*line), file) < index) {
+        /* note that fgets don't strip the terminating \n, checking its
+         presence would allow to handle lines longer that sizeof(line) */
+        return(line)
+    };
+    /* may check feof here to make a difference between eof and io failure -- network
+     timeout for instance */
     
-    // Extract characters from file and store in character c
-    for (c = getc(fp); c != EOF; c = getc(fp))
-        if (c == '\n') // Increment count if this character is newline
-            count = count + 1;
-    
-    // Close the file
-    while (fgets(line, sizeof line, file) != NULL) /* read a line */
-
-    {
-    fp = fopen("test.txt", "r");            count++;
-    if (fp == NULL){            if (count == lineNumber)
-    printf("Could not open file %s", "test.txtg");          {
-    return 0;               for (int i = 0; i < LINENUMBER; i++)
-    }               {
-    for (ch = getc(fp); ch != EOF; ch = getc(fp)){                  if (lines[i][0] == '\0')
-        countMaxLine++;                 {
-        maxLineLenght = countMaxLine;                       printf("copy line %s, id is %d \n", line , taskid );
-        if (ch == '\n') { // Increment count if this character is newline                       strcpy(lines[i], line);
-            count = count + 1;                      break;
-            countMaxLine = 0;                   }
-            }
-        }           }
-    }       }
     fclose(file);
-
-
-
-    fclose(fp);
-    printf("The file %s has %d lines\n ", fileName, count);
-    return ;
     
 }
+
+
 
 
 
