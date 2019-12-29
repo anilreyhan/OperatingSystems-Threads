@@ -32,7 +32,7 @@ struct thread_data
 
 struct line_data
 {
-    char line[MAXLINELENGTH];
+    char *line;
     int  readFlag;
     int  upperFlag;
     int  replaceFlag;
@@ -122,11 +122,11 @@ int main(int argc, char **args) {
     pthread_join(read_thread[0], NULL);
     pthread_join(read_thread[1], NULL);
 
-    /*printf("\nARRAY IS:\n");
-    for (int i = 0; i < LINENUMBER; ++i)
+    printf("\nARRAY IS:\n");
+    for (int i = 0; i <= totalNumOfLines; ++i)
     {
         printf("%s\n", lines[i].line);
-    }*/
+    }
 
     
     return 0;
@@ -136,7 +136,7 @@ void* read_function(void* args){
     
     while(readCount<totalNumOfLines){
         pthread_mutex_lock(&readCount_mutex);
-        for (int i = 0; i < totalNumOfLines; i++)
+        for (int i = 0; i <= totalNumOfLines; i++)
         {
             pthread_mutex_lock(&array_mutex[i]);
             
@@ -145,7 +145,7 @@ void* read_function(void* args){
                 printf("Thread %d is working in index %d\n",thread_id, i);
                 //read line
                 printf("get line %s\n", getLine(i));
-                //strcpy(lines[i].line, getLine(i));
+                lines[i].line= getLine(i);
                 
                 //end of read line
                 readCount = readCount + 1;
@@ -167,7 +167,7 @@ void* read_function(void* args){
     }
     
     
-    pthread_exit((void*)0);
+    pthread_exit(NULL);
 }
 
 
@@ -216,6 +216,7 @@ char* getLine(int index){
             return line;
         }
     }
+    return 0;
 }
 
 
