@@ -125,7 +125,7 @@ int main(int argc, char **args) {
     printf("\nARRAY IS:\n");
     for (int i = 0; i <= totalNumOfLines; ++i)
     {
-        printf("%s\n", lines[i].line);
+        printf("Text: %sReadF: %d, UF: %d, RepF: %d, WF: %d\n", lines[i].line, lines[i].readFlag, lines[i].upperFlag, lines[i].replaceFlag, lines[i].writeFlag);
     }
 
     
@@ -139,35 +139,26 @@ void* read_function(void* args){
         for (int i = 0; i <= totalNumOfLines; i++)
         {
             pthread_mutex_lock(&array_mutex[i]);
-            
             if (lines[i].readFlag != 1){
-                
                 printf("Thread %d is working in index %d\n",thread_id, i);
                 //read line
-                printf("get line %s\n", getLine(i));
-                lines[i].line= getLine(i);
+                //printf("get line %s\n", getLine(i));
+                lines[i].line = getLine(i);
                 
                 //end of read line
                 readCount = readCount + 1;
                 lines[i].readFlag = 1;
-                
             }
             else{
+                pthread_mutex_unlock(&array_mutex[i]);
+                pthread_mutex_unlock(&readCount_mutex);
                 continue;
             }
-            
             pthread_mutex_unlock(&array_mutex[i]);
             pthread_mutex_unlock(&readCount_mutex);
-            
         }
-        
-        
-        
-        
     }
-    
-    
-    pthread_exit(NULL);
+    pthread_exit((void*)0);
 }
 
 
