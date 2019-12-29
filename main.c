@@ -20,6 +20,15 @@ void printLines();
 #define MAXLINELENGTH 150
 #define LINENUMBER 150
 
+int readCount = 0;
+int upperCount = 0;
+int replaceCount = 0;
+int writeCount = 0;
+int totalNumOfLines = 0;
+
+
+
+
 int readedQueue[LINENUMBER];
 char lines[LINENUMBER][MAXLINELENGTH];
 int number_of_threads;
@@ -29,6 +38,16 @@ struct thread_data
     int	thread_id;
     int  pass;
 };
+
+struct line_data
+{
+    char line[MAXLINELENGTH];
+    int  readFlag = 0;
+    int  upperFlag = 0;
+    int  replaceFlag = 0;
+    int  writeFlag = 0;
+};
+
 
 
 int main(int argc, char **args) {
