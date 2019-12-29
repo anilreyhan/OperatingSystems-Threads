@@ -22,7 +22,7 @@ void* read_function(void* args);
 void* replace_function(void* line);
 char* getLine(int index);
 char *strupr(char *str);
-char *replaceChars(char *line);
+
 
 #define MAXLINELENGTH 150
 #define LINENUMBER 150
@@ -129,13 +129,14 @@ int main(int argc, char **args) {
     {
         pthread_join(read_thread[i], NULL);
     }
-    /////CREATE THREADS
-    //upper Thread
 
-    /////KILL THREADS
     for (int i = 0; i < number_of_upper_threads; i++)
     {
         pthread_join(upper_thread[i], NULL);
+    }
+    for (int i = 0; i < number_of_replace_threads; i++)
+    {
+        pthread_join(replace_thread[i], NULL);
     }
     
 
@@ -159,7 +160,7 @@ void* read_function(void* args){
             if (lines[i].readFlag != 1){
                 printf("Read_%d is working in index %d\n",thread_id, i);
                 //read line
-                printf("get line %s\n", getLine(i));
+                //printf("get line %s\n", getLine(i));
                 lines[i].line = getLine(i);
                 
                 
@@ -191,7 +192,7 @@ void* replace_function(void* args){
                 printf("Replace_%d is working in index %d\n",thread_id, i);
                 //read line
                 //printf("get line %s\n", getLine(i));
-                printf("To replace: %s\n", lines[i].line);
+               // printf("To replace: %s\n", lines[i].line);
                // printf("To replaced maybe??: %s\n", replaceChars(lines[i].line));
 
                 
@@ -226,23 +227,6 @@ void* replace_function(void* args){
 }
 
 
-char *replaceChars(char *line){
-    line = malloc(MAXLINELENGTH);
-    printf("Beginning of replace: \n%s", line);
-
-    while(*line!='\0')
-    {
-        if(*line==" ")
-        {
-            line="_";
-        }
-        line++;
-    }
-    printf("End of replace: \n%s",line);
-
-    return line;
-    
-}
 
 
 
@@ -260,7 +244,7 @@ void* upper_function(void* args){
         {
             pthread_mutex_lock(&array_mutex[i]);
             if (lines[i].readFlag == 1 && lines[i].upperFlag != 1){
-                printf("Thread %d is working to upper in index %d\n",thread_id, i);
+                printf("Upper_%d is working to upper in index %d\n",thread_id, i);
                 //upper line
                 //strcpy(lines[i].line,toUppercase(lines[i].line));
                 //toUppercase(lines[i].line);
