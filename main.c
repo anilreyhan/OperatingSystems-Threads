@@ -168,7 +168,7 @@ void* read_function(void* args){
                 
                 //read line
                 lines[i].line = getLine(i);
-                printf("Read_%d read the line %d which is \"%s\n",thread_id, i, lines[i].line);
+                printf("Read_%d\t\tread the line %d which is %s\n\n",thread_id, i, lines[i].line);
                 //end of read line
 
                 readCount = readCount + 1;
@@ -195,7 +195,7 @@ void* replace_function(void* args){
         {
             pthread_mutex_lock(&array_mutex[i]);
             if (lines[i].readFlag == 1 && lines[i].replaceFlag != 1){
-                printf("Replace_%d read the index %d and converted %s ",thread_id, i, lines[i].line);
+                printf("Replace_%d\tread index %d and converted %s ",thread_id, i, lines[i].line);
                 char * t; // first copy the pointer to not change the original
                 int size = 0;
 
@@ -207,7 +207,7 @@ void* replace_function(void* args){
                     }
                     p++;
                 }
-                printf("to %s\n",lines[i].line);
+                printf("to %s\n\n", lines[i].line);
                 
                //printf("Replaced: %s\n", replaceChars(lines[i].line));
                 replaceCount = replaceCount + 1;
@@ -234,7 +234,7 @@ void* upper_function(void* args){
         {
             pthread_mutex_lock(&array_mutex[i]);
             if (lines[i].readFlag == 1 && lines[i].upperFlag != 1){
-                printf("Upper_%d is working to upper in index %d\n",thread_id, i);
+                printf("Upper_%d\t\tread index %d and converted %s ",thread_id, i, lines[i].line);
                 //upper line
                 //strcpy(lines[i].line,toUppercase(lines[i].line));
                 //toUppercase(lines[i].line);
@@ -248,7 +248,8 @@ void* upper_function(void* args){
                     *p = toupper((unsigned char)*p);
                     p++;
                 }
-                     
+
+                printf("to %s\n\n", lines[i].line);
 
                 //end of upper line
                 upperCount = upperCount + 1;
@@ -279,7 +280,7 @@ void* write_function(void* args){
                 pthread_mutex_lock(&writePermission_mutex);
                 if (writePermission < totalNumOfLines ){
                     //write line
-                    printf("Write_%d wrote the line %d which is %s\n",thread_id, i, lines[i].line);
+                    printf("Writer_%d\twrite line %d which is %s\n\n",thread_id, i, lines[i].line);
                     //if not succesful, try it until it is succesfull...
                     int status = 0;
                     while(status == 0){
@@ -411,4 +412,5 @@ int write(int lno, char* newln){
     rename(temp, fileName);
     return 1;
     */
+    return 1;
 }
