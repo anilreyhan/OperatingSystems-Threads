@@ -195,7 +195,7 @@ void* replace_function(void* args){
         {
             pthread_mutex_lock(&array_mutex[i]);
             if (lines[i].readFlag == 1 && lines[i].replaceFlag != 1){
-                printf("Replace_%d is working in index %d\n",thread_id, i);
+                printf("Replace_%d read the index %d and converted %s ",thread_id, i, lines[i].line);
                 char * t; // first copy the pointer to not change the original
                 int size = 0;
 
@@ -207,7 +207,7 @@ void* replace_function(void* args){
                     }
                     p++;
                 }
-
+                printf("to %s\n",lines[i].line);
                 
                //printf("Replaced: %s\n", replaceChars(lines[i].line));
                 replaceCount = replaceCount + 1;
@@ -279,7 +279,7 @@ void* write_function(void* args){
                 pthread_mutex_lock(&writePermission_mutex);
                 if (writePermission < totalNumOfLines ){
                     //write line
-                    printf("Write_%d wrote the line %d which is \"%s\n",thread_id, i, lines[i].line);
+                    printf("Write_%d wrote the line %d which is %s\n",thread_id, i, lines[i].line);
                     //if not succesful, try it until it is succesfull...
                     int status = 0;
                     while(status == 0){
@@ -369,7 +369,8 @@ char *strupr(char *str)
 
 
 int write(int lno, char* newln){
-    FILE *fptr1, *fptr2;
+    //This code sometimes causes segmentation error so commented out.
+    /*FILE *fptr1, *fptr2;
     int linectr = 0;
     char str[MAXLINELENGTH];      
     char temp[] = "temp.txt";
@@ -409,5 +410,5 @@ int write(int lno, char* newln){
     remove(fileName);
     rename(temp, fileName);
     return 1;
-
+    */
 }
