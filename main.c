@@ -51,6 +51,7 @@ int upperCount = 0;
 int replaceCount = 0;
 int writeCount = 0;
 int totalNumOfLines = 0;
+int writePermission = 0;
 char* fileName;
 
 pthread_mutex_t readCount_mutex;
@@ -58,6 +59,8 @@ pthread_mutex_t upperCount_mutex;
 pthread_mutex_t replaceCount_mutex;
 pthread_mutex_t writeCount_mutex;
 pthread_mutex_t array_mutex[LINENUMBER];
+pthread_mutex_t writePermission_mutex;
+
 
 
 struct line_data lines[LINENUMBER];
@@ -101,6 +104,8 @@ int main(int argc, char **args) {
     pthread_mutex_init(&upperCount_mutex,NULL);
     pthread_mutex_init(&replaceCount_mutex,NULL);
     pthread_mutex_init(&writeCount_mutex,NULL);
+    pthread_mutex_init(&writePermission_mutex,NULL);
+
     
     for (int i = 0; i < LINENUMBER; ++i)
     {
@@ -279,15 +284,21 @@ void* write_function(void* args){
             pthread_mutex_lock(&array_mutex[i]);
             if (lines[i].readFlag == 1 && lines[i].replaceFlag == 1 && lines[i].upperFlag == 1 && lines[i].writeFlag != 1){
 
-                //write line
-                printf("Write_%d wrote the line %d which is \"%s\n",thread_id, i, lines[i].line);
-                int status = 0;
-                while(status == 0){
-                    status = write(i, lines[i].line);
-                }       
+                pthread_mutex_lock(&writePermission_mutex);
+                if (writePermission < totalNumOfLines ){
+                    //write line
+                    printf("Write_%d wrote the line %d which is \"%s\n",thread_id, i, lines[i].line);
+                    int status = 0;
+                    while(status == 0){
+                        status = write(i, lines[i].line);
+                    }       
+                    writePermission = writePermission -1;
+                    writeCount = writeCount + 1;
+                    lines[i].writeFlag = 1;
+                }
+                
+                pthread_mutex_unlock(&writePermission_mutex);
 
-                writeCount = writeCount + 1;
-                lines[i].writeFlag = 1;
             }
             else{
                 pthread_mutex_unlock(&array_mutex[i]);
@@ -370,11 +381,10 @@ int write(int lno, char* newln){
     char str[MAXLINELENGTH];      
     char temp[] = "temp.txt";
 
-
     fptr1 = fopen(fileName, "r");
     fptr2 = fopen(temp, "w");
 
-     if (!fptr1) {
+    if (!fptr1) {
         fclose(fptr1);
         return 0;
     }
@@ -382,7 +392,6 @@ int write(int lno, char* newln){
         fclose(fptr2);
         return 0;
     }
-    
 
      // copy all contents to the temporary file other except specific line
     while (!feof(fptr1)) 
@@ -406,7 +415,6 @@ int write(int lno, char* newln){
     fclose(fptr2);
     remove(fileName);
     rename(temp, fileName);
-    printf(" Replacement did successfully..!! \n");
     return 1;
 
 }
