@@ -1,9 +1,9 @@
 /*
  *      How to run?
  *      gcc -o main main.c -pthread
- *       ./main -d test.txt -n 2 2 2 2
+ *       ./main -d test.txt -n 5 5 5 5
  *
- *      fseek fuction might be used in project.
+ * 
  */
 
 #include <stdio.h>
@@ -90,23 +90,24 @@ int main(int argc, char **args) {
     totalNumOfLines = getFileLineCount(args[2]);
     printf("TNOL is: %d\n", totalNumOfLines);
     
+    //parse args
     int number_of_read_threads = atoi(args[4]);
     int number_of_upper_threads = atoi(args[5]);
     int number_of_replace_threads = atoi(args[6]);
     int number_of_write_threads = atoi(args[7]);
     
+    //define threads
     pthread_t read_thread[number_of_read_threads];
     pthread_t upper_thread[number_of_upper_threads];
     pthread_t replace_thread[number_of_replace_threads];
     pthread_t write_thread[number_of_write_threads];
     
+    //initialize mutex
     pthread_mutex_init(&readCount_mutex,NULL);
     pthread_mutex_init(&upperCount_mutex,NULL);
     pthread_mutex_init(&replaceCount_mutex,NULL);
     pthread_mutex_init(&writeCount_mutex,NULL);
     pthread_mutex_init(&writePermission_mutex,NULL);
-
-    
     for (int i = 0; i < LINENUMBER; ++i)
     {
         pthread_mutex_init(&array_mutex[i],NULL);
@@ -114,7 +115,6 @@ int main(int argc, char **args) {
     }
  
     /////CREATE THREADS
-    //Read Thread
     for (int i = 0; i < number_of_read_threads; i++) {
         pthread_create (&read_thread[i], NULL, &read_function, (void*)&i);
     }
@@ -146,7 +146,7 @@ int main(int argc, char **args) {
         pthread_join(write_thread[i], NULL);
     }
     
-
+    //print the fial array with flags.
     printf("\nARRAY IS:\n");
     for (int i = 0; i <= totalNumOfLines; ++i)
     {
@@ -167,11 +167,10 @@ void* read_function(void* args){
             if (lines[i].readFlag != 1){
                 
                 //read line
-                //printf("get line %s\n", getLine(i));
                 lines[i].line = getLine(i);
                 printf("Read_%d read the line %d which is \"%s\n",thread_id, i, lines[i].line);
-                
                 //end of read line
+
                 readCount = readCount + 1;
                 lines[i].readFlag = 1;
             }
@@ -197,12 +196,6 @@ void* replace_function(void* args){
             pthread_mutex_lock(&array_mutex[i]);
             if (lines[i].readFlag == 1 && lines[i].replaceFlag != 1){
                 printf("Replace_%d is working in index %d\n",thread_id, i);
-                //read line
-                //printf("get line %s\n", getLine(i));
-               // printf("To replace: %s\n", lines[i].line);
-               // printf("To replaced maybe??: %s\n", replaceChars(lines[i].line));
-
-                
                 char * t; // first copy the pointer to not change the original
                 int size = 0;
 
@@ -217,7 +210,6 @@ void* replace_function(void* args){
 
                 
                //printf("Replaced: %s\n", replaceChars(lines[i].line));
-                //end of read line
                 replaceCount = replaceCount + 1;
                 lines[i].replaceFlag = 1;
             }
@@ -288,6 +280,7 @@ void* write_function(void* args){
                 if (writePermission < totalNumOfLines ){
                     //write line
                     printf("Write_%d wrote the line %d which is \"%s\n",thread_id, i, lines[i].line);
+                    //if not succesful, try it until it is succesfull...
                     int status = 0;
                     while(status == 0){
                         status = write(i, lines[i].line);
