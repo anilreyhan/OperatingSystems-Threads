@@ -16,6 +16,7 @@
 void *readLine(void *threadid);
 void* upper_function(void* args);
 void* write_function(void* args);
+int write(int line, char* newline);
 int determineLineNumber();
 void readFile();
 int getFileLineCount();
@@ -27,7 +28,7 @@ char *strupr(char *str);
 
 #define MAXLINELENGTH 150
 #define LINENUMBER 150
-
+#define BUFFER_SIZE 1024
 
 struct thread_data
 {
@@ -124,7 +125,7 @@ int main(int argc, char **args) {
         pthread_create (&replace_thread[i], NULL, &replace_function, (void*)&i);
     }
     for (int i = 0; i < number_of_write_threads; i++) {
-        pthread_create (&write_thread[i], NULL, &write_thread, (void*)&i);
+        pthread_create (&write_thread[i], NULL, &write_function, (void*)&i);
     }
     
     /////KILL THREADS
@@ -132,7 +133,6 @@ int main(int argc, char **args) {
     {
         pthread_join(read_thread[i], NULL);
     }
-
     for (int i = 0; i < number_of_upper_threads; i++)
     {
         pthread_join(upper_thread[i], NULL);
@@ -140,6 +140,10 @@ int main(int argc, char **args) {
     for (int i = 0; i < number_of_replace_threads; i++)
     {
         pthread_join(replace_thread[i], NULL);
+    }
+    for (int i = 0; i < number_of_write_threads; i++)
+    {
+        pthread_join(write_thread[i], NULL);
     }
     
 
@@ -278,24 +282,25 @@ void* write_function(void* args){
         for (int i = 0; i <= totalNumOfLines; i++)
         {
             pthread_mutex_lock(&array_mutex[i]);
-            if (lines[i].readFlag == 1 && lines[i].replaceFlag == 1 && lines[i].upperFlag == 1){
-                
+            if (lines[i].readFlag == 1 && lines[i].replaceFlag == 1 && lines[i].upperFlag == 1 && lines[i].writeFlag != 1){
+
                 //write line
-                //printf("get line %s\n", getLine(i));
-                lines[i].line = getLine(i);
-                printf("Read_%d read the line %d which is \"%s\n",thread_id, i, lines[i].line);
-                
-                //end of read line
+                printf("Write_%d wrote the line %d which is \"%s\n",thread_id, i, lines[i].line);
+                int status = 0;
+                while(status == 0){
+                    status = write(i, lines[i].line);
+                }       
+
                 writeCount = writeCount + 1;
-                lines[i].readFlag = 1;
+                lines[i].writeFlag = 1;
             }
             else{
                 pthread_mutex_unlock(&array_mutex[i]);
-                pthread_mutex_unlock(&readCount_mutex);
+                pthread_mutex_unlock(&writeCount_mutex);
                 continue;
             }
             pthread_mutex_unlock(&array_mutex[i]);
-            pthread_mutex_unlock(&readCount_mutex);
+            pthread_mutex_unlock(&writeCount_mutex);
         }
     }
     pthread_exit((void*)0);
@@ -364,42 +369,51 @@ char *strupr(char *str)
 
 
 
-void write(int line, char* newLine){
-    FILE * fPtr;
-    FILE * fTemp;
-    
-    char buffer[MAXLINELENGTH];
-    int line, count;
+int write(int lno, char* newln){
+    FILE *fptr1, *fptr2;
+    int linectr = 0;
+    char str[MAXLINELENGTH];      
+    char temp[] = "temp.txt";
 
 
-    /* Remove extra new line character from stdin */
-    fflush(stdin);
+    fptr1 = fopen(fileName, "r");
+    fptr2 = fopen(temp, "w");
 
-    printf("Replace '%d' line with: ", line);
-    fgets(newline, MAXLINELENGTH, stdin);
-
-
-    /*  Open all required files */
-    fPtr  = fopen(fileName, "r");
-    fTemp = fopen("replace.tmp", "w"); 
-
-    /*
-     * Read line from source file and write to destination 
-     * file after replacing given line.
-     */
-    count = 0;
-    while ((fgets(buffer, MAXLINELENGTH, fPtr)) != NULL)
-    {
-        count++;
-        if (count == line)
-            fputs(newline, fTemp);
-        else
-            fputs(buffer, fTemp);
+     if (!fptr1) {
+        fclose(fptr1);
+        return 0;
     }
+    if (!fptr2) 
+    {
+        fclose(fptr2);
+        return 0;
+    }
+    /* get the new line from the user */
+    /* get the line number to delete the specific line */
 
-
-    /* Close all files to release resource */
-    fclose(fPtr);
-    fclose(fTemp);
+     // copy all contents to the temporary file other except specific line
+    while (!feof(fptr1)) 
+    {
+        strcpy(str, "\0");
+        fgets(str, MAXLINELENGTH, fptr1);
+        if (!feof(fptr1)) 
+        {
+            linectr++;
+            if (linectr != lno) 
+                {
+                    fprintf(fptr2, "%s", str);
+                } 
+                else 
+                {
+                    fprintf(fptr2, "%s", newln);
+                }
+            }
+    }
+    fclose(fptr1);
+    fclose(fptr2);
+    remove(fileName);
+    rename(temp, fileName);
+    printf(" Replacement did successfully..!! \n");
+    return 1;
 
 }
