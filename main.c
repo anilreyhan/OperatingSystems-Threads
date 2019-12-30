@@ -36,7 +36,6 @@ struct thread_data
 };
 
 
-
 struct line_data
 {
     char *line;
@@ -54,15 +53,11 @@ int writeCount = 0;
 int totalNumOfLines = 0;
 char* fileName;
 
-
 pthread_mutex_t readCount_mutex;
 pthread_mutex_t upperCount_mutex;
 pthread_mutex_t replaceCount_mutex;
 pthread_mutex_t writeCount_mutex;
 pthread_mutex_t array_mutex[LINENUMBER];
-
-
-
 
 
 struct line_data lines[LINENUMBER];
@@ -383,13 +378,11 @@ int write(int lno, char* newln){
         fclose(fptr1);
         return 0;
     }
-    if (!fptr2) 
-    {
+    if (!fptr2) {
         fclose(fptr2);
         return 0;
     }
-    /* get the new line from the user */
-    /* get the line number to delete the specific line */
+    
 
      // copy all contents to the temporary file other except specific line
     while (!feof(fptr1)) 
